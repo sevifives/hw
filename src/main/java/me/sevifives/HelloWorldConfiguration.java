@@ -2,6 +2,7 @@ package me.sevifives;
 
 import io.dropwizard.Configuration;
 import io.dropwizard.db.DataSourceFactory;
+import io.dropwizard.flyway.FlywayFactory;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
@@ -26,6 +27,10 @@ public class HelloWorldConfiguration extends Configuration {
     
     @NotEmpty
     private String accountPhone;
+    
+    @Valid
+    @NotNull
+    private FlywayFactory flyway;
     
     @Valid
     @NotNull
@@ -90,4 +95,15 @@ public class HelloWorldConfiguration extends Configuration {
     public void setDataSourceFactory(DataSourceFactory dataSourceFactory) {
         this.database = dataSourceFactory;
     }
+
+	@JsonProperty("flyway")
+	public FlywayFactory getFlywayFactory() {
+		return this.flyway;
+	}
+	
+	@JsonProperty("flyway")
+	public void setFlywayFactory(FlywayFactory fwFactory) {
+		this.flyway = fwFactory;
+	}
+	
 }

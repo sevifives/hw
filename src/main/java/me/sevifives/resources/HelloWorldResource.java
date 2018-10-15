@@ -128,11 +128,12 @@ public class HelloWorldResource {
     }
     
     private Response _handleTodo(String body) {
-	    	ArrayList<String> e = new ArrayList<String>(Arrays.asList(body.split(" ")));
+	    	ArrayList<String> e = new ArrayList<String>(Arrays.asList(body.split("%20")));
 	    	
 	    	String action = e.remove(0).toLowerCase();
+	    	logger.info("What action: {}", action);
 	    	
-	    	switch(action) {
+	    	switch(action.toLowerCase()) {
 	    		case "add":
 	    			return this._addTask( String.join(" ",e) );
 	    		case "list":
@@ -150,9 +151,9 @@ public class HelloWorldResource {
     		t.setDescription("-na-");
     		t.setPersonId(0L);
     		
-    		taskDao.create(t);
-    		
-    		return Response.ok().build();
+    		Task r = taskDao.create(t);
+    		logger.info("Is it null? {}", r==null?-1:r.getId());
+    		return Response.ok(r).build();
     }
     
     private Response _listTasks() {

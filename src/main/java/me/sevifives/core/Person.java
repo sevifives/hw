@@ -10,7 +10,7 @@ import javax.persistence.NamedQuery;
 import javax.persistence.Table;
 
 @Entity
-@Table(name="people")
+@Table(name="people",schema="sevifives")
 @NamedQueries(
 		{
 			@NamedQuery(

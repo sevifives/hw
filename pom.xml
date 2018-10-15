@@ -45,6 +45,22 @@
             <groupId>io.dropwizard</groupId>
             <artifactId>dropwizard-hibernate</artifactId>
         </dependency>
+        
+        <dependency>
+            <groupId>io.dropwizard</groupId>
+            <artifactId>dropwizard-migrations</artifactId>
+        </dependency>
+        
+        <dependency>
+		  <groupId>io.dropwizard.modules</groupId>
+		  <artifactId>dropwizard-flyway</artifactId>
+		  <version>1.3.0-4</version>
+		</dependency>
+        
+        <dependency>
+            <groupId>org.liquibase</groupId>
+            <artifactId>liquibase-core</artifactId>
+        </dependency>
 
         <dependency>
 			<groupId>com.twilio.sdk</groupId>
@@ -63,6 +79,12 @@
 		    <version>2.6</version>
 		</dependency>
 		
+		<dependency>
+            <groupId>org.flywaydb</groupId>
+            <artifactId>flyway-core</artifactId>
+            <version>5.2.0</version>
+        </dependency>
+        
 		<dependency>
             <groupId>com.h2database</groupId>
             <artifactId>h2</artifactId>

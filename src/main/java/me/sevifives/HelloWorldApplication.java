@@ -1,8 +1,14 @@
 package me.sevifives;
 
 import io.dropwizard.Application;
+import io.dropwizard.db.DataSourceFactory;
+import io.dropwizard.hibernate.HibernateBundle;
 import io.dropwizard.setup.Bootstrap;
 import io.dropwizard.setup.Environment;
+import me.sevifives.core.Person;
+import me.sevifives.core.Task;
+import me.sevifives.db.PersonDAO;
+import me.sevifives.db.TaskDAO;
 import me.sevifives.health.TemplateHealthCheck;
 import me.sevifives.resources.HelloWorldResource;
 
@@ -19,17 +25,34 @@ public class HelloWorldApplication extends Application<HelloWorldConfiguration> 
 
     @Override
     public void initialize(final Bootstrap<HelloWorldConfiguration> bootstrap) {
-        // TODO: application initialization
+        bootstrap.addBundle(hibernateBundle);
     }
+    
+    private final HibernateBundle<HelloWorldConfiguration> hibernateBundle =
+	    new HibernateBundle<HelloWorldConfiguration>(
+	    		Person.class,
+	    		Task.class
+	    		) {
+	        @Override
+	        public DataSourceFactory getDataSourceFactory(HelloWorldConfiguration configuration) {
+	            return configuration.getDataSourceFactory();
+	        }
+	    };
+	
+	    
 
     @Override
     public void run(final HelloWorldConfiguration configuration,
                     final Environment environment) {
     	
+    		final PersonDAO pDao = new PersonDAO(hibernateBundle.getSessionFactory());
+    		final TaskDAO tDao = new TaskDAO(hibernateBundle.getSessionFactory());
+    	
     		final HelloWorldResource resource = new HelloWorldResource(
     	        configuration.getTemplate(),
     	        configuration.getDefaultName(),
-    	        configuration
+    	        configuration,
+    	        tDao, pDao
     	    );
     		
     	    environment.jersey().register(resource);

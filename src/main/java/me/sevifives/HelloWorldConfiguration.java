@@ -1,7 +1,13 @@
 package me.sevifives;
 
 import io.dropwizard.Configuration;
+import io.dropwizard.db.DataSourceFactory;
+
 import com.fasterxml.jackson.annotation.JsonProperty;
+
+import javax.validation.Valid;
+import javax.validation.constraints.NotNull;
+
 import org.hibernate.validator.constraints.*;
 
 public class HelloWorldConfiguration extends Configuration {
@@ -20,6 +26,10 @@ public class HelloWorldConfiguration extends Configuration {
     
     @NotEmpty
     private String accountPhone;
+    
+    @Valid
+    @NotNull
+    private DataSourceFactory database = new DataSourceFactory();
 
     @JsonProperty
     public String getTemplate() {
@@ -70,4 +80,14 @@ public class HelloWorldConfiguration extends Configuration {
 	public void setAccountPhone(String accountPhone) {
 		this.accountPhone = accountPhone;
 	}
+	
+	@JsonProperty("database")
+    public DataSourceFactory getDataSourceFactory() {
+        return database;
+    }
+	
+	@JsonProperty("database")
+    public void setDataSourceFactory(DataSourceFactory dataSourceFactory) {
+        this.database = dataSourceFactory;
+    }
 }

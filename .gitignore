@@ -1,0 +1,6 @@
+/target
+/.settings
+/.classpath
+/dependency-reduced-pom.xml
+/config.yml
+/.project

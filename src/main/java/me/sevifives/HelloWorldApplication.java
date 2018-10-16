@@ -62,7 +62,6 @@ public class HelloWorldApplication extends Application<HelloWorldConfiguration> 
     		DataSourceFactory dsf = configuration.getDataSourceFactory();
     		
     		Flyway flyway = Flyway.configure().dataSource(dsf.getUrl(), dsf.getUser(), dsf.getPassword()).load();
-    		flyway.setSchemas("sevifives");
     		flyway.migrate();
     		
     		final PersonDAO pDao = new PersonDAO(hibernateBundle.getSessionFactory());

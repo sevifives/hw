@@ -122,16 +122,16 @@ public class HelloWorldResource {
     @Timed
     @Path("sms/todo")
     @Consumes("application/x-www-form-urlencoded")
+    @Produces(MediaType.TEXT_PLAIN)
     @UnitOfWork
     public Response handleComplexSms(@FormParam("Body") String body) throws IOException {
     		return _handleTodo(body);
     }
     
     private Response _handleTodo(String body) {
-	    	ArrayList<String> e = new ArrayList<String>(Arrays.asList(body.split("%20")));
+	    	ArrayList<String> e = new ArrayList<String>(Arrays.asList(body.split(" ")));
 	    	
 	    	String action = e.remove(0).toLowerCase();
-	    	logger.info("What action: {}", action);
 	    	
 	    	switch(action.toLowerCase()) {
 	    		case "add":
@@ -152,15 +152,63 @@ public class HelloWorldResource {
     		t.setPersonId(0L);
     		
     		Task r = taskDao.create(t);
-    		logger.info("Is it null? {}", r==null?-1:r.getId());
-    		return Response.ok(r).build();
+    		
+    		Body body = new Body
+                    .Builder(r.getTitle())
+                    .build();
+    		
+        Message sms = new Message
+                .Builder()
+                .body(body)
+                .build();
+        
+        MessagingResponse twiml = new MessagingResponse
+                .Builder()
+                .message(sms)
+                .build();
+
+    		return Response.ok(twiml.toXml()).build();
     }
     
     private Response _listTasks() {
-    		return Response.ok(taskDao.findAllForPersonId(0L)).build();
+    		List<Task> all = taskDao.findAllForPersonId(0L);
+    		
+    		String r = "";
+    		int i = 0;
+    		for (Task t : all) {
+    			r+= (i+1) + ". " + t.getTitle() + " ";
+    			i+=1;
+    		}
+    		
+	    	Body body = new Body
+	                .Builder(r)
+	                .build();
+			
+	    Message sms = new Message
+	            .Builder()
+	            .body(body)
+	            .build();
+	    
+	    MessagingResponse twiml = new MessagingResponse
+	            .Builder()
+	            .message(sms)
+	            .build();
+
+    		return Response.ok(twiml.toXml()).build();
     }
     
-    private Response _removeTask(String taskName) {
-    		return Response.ok(taskDao.findByTitleAndPersonId(taskName, 0L)).build();
+    private Response _removeTask(String itemIndex) {
+    		
+    		Integer idx = Integer.valueOf(itemIndex); 
+    		
+    		List<Task> all = taskDao.findAllForPersonId(0L);
+    		
+    		if (all == null) { return this._listTasks(); }
+    		
+    		Task t = all.get(idx-1);
+    		
+    		taskDao.delete(t);
+    		
+    		return this._listTasks();
     }
 }

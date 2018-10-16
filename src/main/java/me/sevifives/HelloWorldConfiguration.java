@@ -28,9 +28,14 @@ public class HelloWorldConfiguration extends Configuration {
     @NotEmpty
     private String accountPhone;
     
+    @NotEmpty
+    private String externalDomain;
+    
     @Valid
     @NotNull
     private FlywayFactory flyway;
+    
+    
     
     @Valid
     @NotNull
@@ -104,6 +109,16 @@ public class HelloWorldConfiguration extends Configuration {
 	@JsonProperty("flyway")
 	public void setFlywayFactory(FlywayFactory fwFactory) {
 		this.flyway = fwFactory;
+	}
+
+	@JsonProperty("externalDomain")
+	public String getExternalDomain() {
+		return externalDomain;
+	}
+
+	@JsonProperty("externalDomain")
+	public void setExternalDomain(String externalDomain) {
+		this.externalDomain = externalDomain;
 	}
 	
 }

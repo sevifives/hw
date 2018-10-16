@@ -15,6 +15,7 @@ import me.sevifives.db.PersonDAO;
 import me.sevifives.db.TaskDAO;
 import me.sevifives.health.TemplateHealthCheck;
 import me.sevifives.resources.HelloWorldResource;
+import me.sevifives.resources.TwilioResource;
 
 public class HelloWorldApplication extends Application<HelloWorldConfiguration> {
     public static void main(final String[] args) throws Exception {
@@ -69,12 +70,14 @@ public class HelloWorldApplication extends Application<HelloWorldConfiguration> 
     	
     		final HelloWorldResource resource = new HelloWorldResource(
     	        configuration.getTemplate(),
-    	        configuration.getDefaultName(),
-    	        configuration,
-    	        tDao, pDao
+    	        configuration.getDefaultName()
     	    );
     		
-    	    environment.jersey().register(resource);
+    		environment.jersey().register(resource);
+    		
+    		final TwilioResource tResource = new TwilioResource(configuration, tDao, pDao);
+    		
+    	    environment.jersey().register(tResource);
     	    
     	    final TemplateHealthCheck healthCheck =
 	            new TemplateHealthCheck(configuration.getTemplate());

@@ -27,6 +27,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.codahale.metrics.annotation.Timed;
+import com.twilio.rest.api.v2010.account.Call;
 import com.twilio.twiml.MessagingResponse;
 import com.twilio.twiml.messaging.Body;
 import com.twilio.twiml.messaging.Message;
@@ -224,6 +225,27 @@ public class TwilioResource {
     		return this._handleTodo(body);
     }
     
+    @POST
+    @Timed
+    @Path("voice/send")
+    @Produces(MediaType.TEXT_PLAIN)
+    public Response sendVoice(
+    		@QueryParam("phone") Optional<String> phone,
+    		@QueryParam("fromPhone") Optional<String> fromPhone,
+    		@QueryParam("messageLink") Optional<String> messageLink
+    		) throws URISyntaxException {
+    	
+    		this.blockPublic(request);
+    		
+    		String baseUrl = hwConfig.getExternalDomain();
+    		String completeStatus = String.format("%s%s",baseUrl, "/twilio/sid/status");
+    		
+    		TwilioAPI api = new TwilioAPI();
+    		
+    		Call ret = api.sendVoice(phone.get(), fromPhone.get(), messageLink.get(), completeStatus);
+    		
+    		return Response.ok(ret.getSid()).build();
+    }
     
     @Context
     HttpServletRequest request;
@@ -253,6 +275,31 @@ public class TwilioResource {
     		return Response.ok(msgSid).build();
     }
     
+    
+    @POST
+    @Timed
+    @Path("sid/status")
+    @Consumes("application/x-www-form-urlencoded")
+    @Produces(MediaType.TEXT_PLAIN)
+    @UnitOfWork
+    public Response handleSidStatus(
+    		MultivaluedMap<String, String> form
+    		) {
+    	
+    		logger.info("Submitted: {}", form);
+    		
+    		Enumeration<String> headers = request.getHeaderNames();
+    		while (headers.hasMoreElements()) {
+    			String h = headers.nextElement();
+    			logger.info("Header: {} => {}", h, request.getHeader(h));
+    		}
+    		String sid = form.getFirst("CallSid");
+    		String status = form.getFirst("CallStatus");
+    	
+    		logger.info("Components: {} {}\n{}", sid, status);
+    		
+    		return Response.ok(sid).build();
+    }
     
     private Response _handleTodo(String body) throws URISyntaxException {
 	    	ArrayList<String> e = new ArrayList<String>(Arrays.asList(body.split(" ")));

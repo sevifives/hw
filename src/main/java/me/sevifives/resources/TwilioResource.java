@@ -144,6 +144,53 @@ public class TwilioResource {
 		return StringUtils.join(rets,",");
     }
     
+    @Path("sendSpamFromPhone")
+    @Produces(MediaType.TEXT_PLAIN)
+    public String sendToSpamFromPhone(
+    		@QueryParam("phones") Optional<String> phones,
+    		@QueryParam("fromPhone") Optional<String> fromPhone,
+    		@QueryParam("message") Optional<String> message,
+    		@QueryParam("spamCount") Optional<Integer> spamCount
+    		) throws URISyntaxException {
+    		
+    		this.blockPublic(request);
+    		
+    		if (!phones.isPresent()) {
+    			return "Phone is required.";
+    		}
+    		
+    		if (!fromPhone.isPresent()) {
+    			return "From phone is required";
+    		}
+    		
+    		String baseUrl = hwConfig.getExternalDomain();
+    		
+    		String completeStatus = String.format("%s%s",baseUrl, "/twilio/sms/todo/status");
+    		ArrayList<String> rets = new ArrayList<String>();
+    		
+    		String[] _phones = phones.get().split(",");
+    		
+    		Integer ct = spamCount.orElse(1);
+    		
+    		TwilioAPI api = new TwilioAPI();
+    		
+    		for (String phone : _phones) {
+    			for (int i=0;i<ct;i+=1) {
+        			com.twilio.rest.api.v2010.account.Message resp =
+        					api.sendMessageFromPhone(
+        							phone,
+        							fromPhone.get(),
+        							(message.get() + " " + (i+1)),
+        							completeStatus
+        							
+        					);
+        			rets.add(phone + "::" + resp.getSid());
+        		}
+    		}
+    		
+		return StringUtils.join(rets,",");
+    }
+    
     @POST
     @Timed
     @Path("sms")

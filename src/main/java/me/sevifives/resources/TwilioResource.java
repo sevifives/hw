@@ -5,7 +5,9 @@ import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Enumeration;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 import javax.servlet.http.HttpServletRequest;
@@ -27,7 +29,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.codahale.metrics.annotation.Timed;
+import com.twilio.converter.Promoter;
 import com.twilio.rest.api.v2010.account.Call;
+import com.twilio.rest.lookups.v1.PhoneNumber;
 import com.twilio.twiml.MessagingResponse;
 import com.twilio.twiml.messaging.Body;
 import com.twilio.twiml.messaging.Message;
@@ -145,6 +149,7 @@ public class TwilioResource {
 		return StringUtils.join(rets,",");
     }
     
+    @POST
     @Path("sendSpamFromPhone")
     @Produces(MediaType.TEXT_PLAIN)
     public String sendToSpamFromPhone(
@@ -273,6 +278,23 @@ public class TwilioResource {
     		logger.info("Components: {} {}\n{}", msgSid, msgStatus);
     		
     		return Response.ok(msgSid).build();
+    }
+    
+    @POST
+    @Timed
+    @Path("phone/status")
+    @Consumes(MediaType.TEXT_PLAIN)
+    @Produces(MediaType.TEXT_PLAIN)
+    public Response getFailed(String body) {
+    		this.blockPublic(request);
+    		
+    		String[] phones = body.split(",");
+    		
+    		TwilioAPI api = new TwilioAPI();
+    		
+    		Map<String, PhoneNumber> results = api.phoneStatus(phones);
+    		
+    		return Response.ok(results).build();
     }
     
     

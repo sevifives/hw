@@ -23,6 +23,9 @@ public class HelloWorldConfiguration extends Configuration {
     private String accountSid;
     
     @NotEmpty
+    private String copilotServiceSid;
+    
+    @NotEmpty
     private String accountToken;
     
     @NotEmpty
@@ -119,6 +122,16 @@ public class HelloWorldConfiguration extends Configuration {
 	@JsonProperty("externalDomain")
 	public void setExternalDomain(String externalDomain) {
 		this.externalDomain = externalDomain;
+	}
+
+	@JsonProperty("copilotServiceSid")
+	public String getCopilotServiceSid() {
+		return copilotServiceSid;
+	}
+
+	@JsonProperty("copilotServiceSid")
+	public void setCopilotServiceSid(String copilotServiceSid) {
+		this.copilotServiceSid = copilotServiceSid;
 	}
 	
 }

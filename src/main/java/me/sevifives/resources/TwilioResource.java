@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Enumeration;
 import java.util.List;
 import java.util.Optional;
 
@@ -11,7 +12,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.FormParam;
 import javax.ws.rs.GET;
-import javax.ws.rs.HeaderParam;
+import javax.ws.rs.NotAllowedException;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
@@ -21,12 +22,11 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.Response;
 
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.codahale.metrics.annotation.Timed;
-import com.twilio.Twilio;
-import com.twilio.rest.api.v2010.account.message.Feedback;
 import com.twilio.twiml.MessagingResponse;
 import com.twilio.twiml.messaging.Body;
 import com.twilio.twiml.messaging.Message;
@@ -47,6 +47,16 @@ public class TwilioResource {
 	private final TaskDAO taskDao;
     private final PersonDAO personDao;
     
+    private void blockPublic(HttpServletRequest req) {
+		StringBuffer uriB = req.getRequestURL();
+		
+		String uri = new String(uriB);
+		logger.info("Url: {}", uri);
+		if (uri.startsWith("http://localhost")) { return; }
+		
+		throw new NotAllowedException("Nope.");
+    }
+    
 	public TwilioResource(
 			HelloWorldConfiguration cfg,
     			TaskDAO tDao,
@@ -62,7 +72,6 @@ public class TwilioResource {
     @Path("simple")
     @Produces(MediaType.TEXT_PLAIN)
     public String saySimpleHello(@QueryParam("name") Optional<String> name) {
-    		
     		return "Hello World";
     }
     
@@ -72,26 +81,75 @@ public class TwilioResource {
     @Produces(MediaType.TEXT_PLAIN)
     public String sendToTwilio(
     		@QueryParam("phone") Optional<String> phone,
-    		@QueryParam("message") Optional<String> message) throws URISyntaxException {
+    		@QueryParam("message") Optional<String> message,
+    		@QueryParam("viaService") Optional<Boolean> viaService
+    		) throws URISyntaxException {
+    		
+    		this.blockPublic(request);
+    		
     		if (!phone.isPresent()) {
     			return "Phone is required.";
     		}
     		
-    		//String ret = String.format("Greetings! The current time is: %s D495D8BPZK1GFS3", Instant.now().toString());
     		TwilioAPI api = new TwilioAPI();
     		
     		String baseUrl = hwConfig.getExternalDomain();
     		
     		String completeStatus = String.format("%s%s",baseUrl, "/twilio/sms/todo/status");
 
-    		com.twilio.rest.api.v2010.account.Message resp = api.sendMessage(phone.get(), message.get(), completeStatus);
+    		com.twilio.rest.api.v2010.account.Message resp;
+    		
+    		if (viaService.isPresent() && viaService.get()) {
+    			resp = api.sendMessageService(phone.get(), message.get(), completeStatus, hwConfig.getCopilotServiceSid());
+    		} else {
+    			resp = api.sendMessage(phone.get(), message.get(), completeStatus);
+    		}
 		return resp.getSid();
+    }
+    
+    @POST
+    @Timed
+    @Path("sendSpam")
+    @Produces(MediaType.TEXT_PLAIN)
+    public String sendToSpam(
+    		@QueryParam("phones") Optional<String> phones,
+    		@QueryParam("message") Optional<String> message,
+    		@QueryParam("spamCount") Optional<Integer> spamCount
+    		) throws URISyntaxException {
+    		
+    		this.blockPublic(request);
+    		
+    		if (!phones.isPresent()) {
+    			return "Phone is required.";
+    		}
+    		String baseUrl = hwConfig.getExternalDomain();
+    		
+    		String completeStatus = String.format("%s%s",baseUrl, "/twilio/sms/todo/status");
+    		ArrayList<String> rets = new ArrayList<String>();
+    		
+    		String[] _phones = phones.get().split(",");
+    		
+    		Integer ct = spamCount.orElse(1);
+    		
+    		TwilioAPI api = new TwilioAPI();
+    		
+    		for (String phone : _phones) {
+    			for (int i=0;i<ct;i+=1) {
+        			com.twilio.rest.api.v2010.account.Message resp =
+        					api.sendMessageService(phone, i + ": " + message.get() , completeStatus, hwConfig.getCopilotServiceSid());
+        			rets.add(phone + "::" + resp.getSid());
+        		}
+    		}
+    		
+		return StringUtils.join(rets,",");
     }
     
     @POST
     @Timed
     @Path("sms")
     public String handleSms(String msg) throws IOException {
+    		this.blockPublic(request);
+    		
     		Body body = new Body
                     .Builder(msg)
                     .build();
@@ -130,18 +188,22 @@ public class TwilioResource {
     @Produces(MediaType.TEXT_PLAIN)
     @UnitOfWork
     public Response handleTodoStatus(
-    		MultivaluedMap<String, String> form,
-    		@HeaderParam("X-Twilio-Signature") String twilioSig
+    		MultivaluedMap<String, String> form
     		) {
     	
     		logger.info("Submitted: {}", form);
     		
+    		Enumeration<String> headers = request.getHeaderNames();
+    		while (headers.hasMoreElements()) {
+    			String h = headers.nextElement();
+    			logger.info("Header: {} => {}", h, request.getHeader(h));
+    		}
     		String msgSid = form.getFirst("MessageSid");
     		String msgStatus = form.getFirst("MessageStatus");
     	
-    		logger.info("Components: {} {}\n{}", msgSid, msgStatus, twilioSig);
+    		logger.info("Components: {} {}\n{}", msgSid, msgStatus);
     		
-    		return Response.ok().build();
+    		return Response.ok(msgSid).build();
     }
     
     

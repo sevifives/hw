@@ -1,0 +1,33 @@
+template: Hello, %s!
+defaultName: ${DW_DEFAULT_NAME:-Stranger}
+
+externalDomain: http://12345.ngrok.io
+
+accountSid: AC
+accountToken: tkn
+accountPhone: +15558675309
+copilotServiceSid: MG
+
+logging:
+  level: INFO
+  loggers:
+    me.sevifives: DEBUG
+    
+database:
+
+  # the name of your JDBC driver
+  driverClass: org.h2.Driver
+
+  # the username
+  user: sa
+
+  # the password
+  password:
+
+  # the JDBC URL
+  url: jdbc:h2:./target/sevif
+  validationQuery: "/* MyService Health Check */ SELECT 1"
+
+flyway:
+  locations:
+    - db/migration

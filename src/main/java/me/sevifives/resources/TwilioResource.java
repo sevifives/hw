@@ -284,7 +284,7 @@ public class TwilioResource {
     @Timed
     @Path("phone/status")
     @Consumes(MediaType.TEXT_PLAIN)
-    @Produces(MediaType.TEXT_PLAIN)
+    @Produces(MediaType.APPLICATION_JSON)
     public Response getFailed(String body) {
     		this.blockPublic(request);
     		
@@ -293,7 +293,6 @@ public class TwilioResource {
     		TwilioAPI api = new TwilioAPI();
     		
     		Map<String, PhoneNumber> results = api.phoneStatus(phones);
-    		
     		return Response.ok(results).build();
     }
     

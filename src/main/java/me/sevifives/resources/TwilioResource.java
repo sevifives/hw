@@ -40,7 +40,7 @@ import com.twilio.twiml.messaging.Message;
 
 import io.dropwizard.hibernate.UnitOfWork;
 import me.sevifives.HelloWorldConfiguration;
-import me.sevifives.api.TwilioAPI;
+import me.sevifives.api.TwilioApiCore;
 import me.sevifives.core.Task;
 import me.sevifives.db.PersonDAO;
 import me.sevifives.db.TaskDAO;
@@ -100,7 +100,7 @@ public class TwilioResource {
     			return "Phone is required.";
     		}
     		
-    		TwilioAPI api = new TwilioAPI();
+    		TwilioApiCore api = new TwilioApiCore(hwConfig);
     		
     		String baseUrl = hwConfig.getExternalDomain();
     		
@@ -140,7 +140,7 @@ public class TwilioResource {
     		
     		Integer ct = spamCount.orElse(1);
     		
-    		TwilioAPI api = new TwilioAPI();
+    		TwilioApiCore api = new TwilioApiCore(hwConfig);
     		
     		for (String phone : _phones) {
     			for (int i=0;i<ct;i+=1) {
@@ -182,7 +182,7 @@ public class TwilioResource {
     		
     		Integer ct = spamCount.orElse(1);
     		
-    		TwilioAPI api = new TwilioAPI();
+    		TwilioApiCore api = new TwilioApiCore(hwConfig);
     		
     		for (String phone : _phones) {
     			for (int i=0;i<ct;i+=1) {
@@ -249,7 +249,7 @@ public class TwilioResource {
     		String baseUrl = hwConfig.getExternalDomain();
     		String completeStatus = String.format("%s%s",baseUrl, "/twilio/sid/status");
     		
-    		TwilioAPI api = new TwilioAPI();
+    		TwilioApiCore api = new TwilioApiCore(hwConfig);
     		
     		Call ret = api.sendVoice(phone.get(), fromPhone.get(), messageLink.get(), completeStatus);
     		
@@ -294,7 +294,7 @@ public class TwilioResource {
     		
     		String[] phones = body.split(",");
     		
-    		TwilioAPI api = new TwilioAPI();
+    		TwilioApiCore api = new TwilioApiCore(hwConfig);
     		
     		if (addons.isPresent()) {
     			Map<String, PhoneNumber> results = api.phoneStatusAddons(phones,addons.get().split(","));

@@ -37,7 +37,7 @@ import com.twilio.twiml.voice.Reject;
 import com.twilio.twiml.voice.Say;
 
 import me.sevifives.HelloWorldConfiguration;
-import me.sevifives.api.TwilioAPI;
+import me.sevifives.api.TwilioApiCore;
 
 @Path("twilio/conference")
 public class TwilioConferenceResource {
@@ -226,7 +226,7 @@ public class TwilioConferenceResource {
 	public Response activeConferences() {
 		this.blockPublic(request);
 		
-		TwilioAPI api = new TwilioAPI();
+		TwilioApiCore api = new TwilioApiCore(hwConfig);
 		ResourceSet<com.twilio.rest.api.v2010.account.Conference> confs = api.getConferences();
 		
 		logger.info("Fetching conferences");
@@ -255,7 +255,7 @@ public class TwilioConferenceResource {
 			) {
 		this.blockPublic(request);
 
-		new TwilioAPI();
+		new TwilioApiCore(hwConfig);
 		
 		ResourceSet<Participant> participants = 
 	            Participant.reader(conferenceSid.get())

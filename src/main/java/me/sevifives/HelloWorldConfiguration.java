@@ -34,6 +34,9 @@ public class HelloWorldConfiguration extends Configuration {
     @NotEmpty
     private String externalDomain;
     
+    @NotEmpty
+    private String moderatorNumber;
+    
     @Valid
     @NotNull
     private FlywayFactory flyway;
@@ -132,6 +135,17 @@ public class HelloWorldConfiguration extends Configuration {
 	@JsonProperty("copilotServiceSid")
 	public void setCopilotServiceSid(String copilotServiceSid) {
 		this.copilotServiceSid = copilotServiceSid;
+	}
+
+	@JsonProperty("moderatorNumber")
+	public String getModeratorNumber() {
+		return moderatorNumber;
+	}
+
+	@JsonProperty("moderatorNumber")
+	public void setModeratorNumber(String moderatorNumber) {
+		// the config doesn't like the plus sign so do not bother using it... add here.
+		this.moderatorNumber = "+"+moderatorNumber;
 	}
 	
 }

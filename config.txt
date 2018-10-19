@@ -6,6 +6,7 @@ externalDomain: http://12345.ngrok.io
 accountSid: AC
 accountToken: tkn
 accountPhone: +15558675309
+moderatorNumber: +15551234567
 copilotServiceSid: MG
 
 logging:

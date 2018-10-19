@@ -30,6 +30,8 @@ import org.slf4j.LoggerFactory;
 
 import com.codahale.metrics.annotation.Timed;
 import com.twilio.converter.Promoter;
+import com.twilio.jwt.accesstoken.AccessToken;
+import com.twilio.jwt.accesstoken.VideoGrant;
 import com.twilio.rest.api.v2010.account.Call;
 import com.twilio.rest.lookups.v1.PhoneNumber;
 import com.twilio.twiml.MessagingResponse;
@@ -45,6 +47,8 @@ import me.sevifives.db.TaskDAO;
 
 @Path("/twilio")
 public class TwilioResource {
+	@Context HttpServletRequest request;
+	
 	final static Logger logger = LoggerFactory.getLogger(TwilioResource.class);
 	
 	private HelloWorldConfiguration hwConfig;
@@ -252,9 +256,6 @@ public class TwilioResource {
     		return Response.ok(ret.getSid()).build();
     }
     
-    @Context
-    HttpServletRequest request;
-    
     @POST
     @Timed
     @Path("sms/todo/status")
@@ -285,15 +286,23 @@ public class TwilioResource {
     @Path("phone/status")
     @Consumes(MediaType.TEXT_PLAIN)
     @Produces(MediaType.APPLICATION_JSON)
-    public Response getFailed(String body) {
+    public Response getFailed(
+    		@QueryParam("addons") Optional<String> addons,
+    		String body) {
+
     		this.blockPublic(request);
     		
     		String[] phones = body.split(",");
     		
     		TwilioAPI api = new TwilioAPI();
     		
-    		Map<String, PhoneNumber> results = api.phoneStatus(phones);
-    		return Response.ok(results).build();
+    		if (addons.isPresent()) {
+    			Map<String, PhoneNumber> results = api.phoneStatusAddons(phones,addons.get().split(","));
+    			return Response.ok(results).build();
+    		} else {
+    			Map<String, PhoneNumber> results = api.phoneStatus(phones);
+    			return Response.ok(results).build();
+    		}
     }
     
     
@@ -320,6 +329,36 @@ public class TwilioResource {
     		logger.info("Components: {} {}\n{}", sid, status);
     		
     		return Response.ok(sid).build();
+    }
+    
+    @POST
+    @Timed
+    @Path("/jwt")
+    @Consumes(MediaType.TEXT_PLAIN)
+    @Produces(MediaType.TEXT_PLAIN)
+    public Response generateJwt(String body) {
+    		this.blockPublic(request);
+    		
+    		String[] parts = body.split(",");
+    		
+    		String twilioApiKey = parts[0];
+    	    String twilioApiSecret = parts[1];
+    	    
+
+    	    String identity = "alice";
+
+    	    // Create Video grant
+    	    VideoGrant grant = new VideoGrant();
+    	    grant.setRoom(parts[2]);
+
+    	    // Create access token
+    	    AccessToken token = new AccessToken.Builder(
+    	      hwConfig.getAccountSid(),
+    	      twilioApiKey,
+    	      twilioApiSecret
+    	    ).identity(identity).grant(grant).build();
+    		
+    		return Response.ok(token.toJwt()).build();
     }
     
     private Response _handleTodo(String body) throws URISyntaxException {
